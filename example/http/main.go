@@ -8,8 +8,8 @@ import (
 	pb "github.com/yeqown/opentracing-practice/protogen"
 
 	"github.com/gin-gonic/gin"
+	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc"
-	// "github.com/opentracing/opentracing-go"
 )
 
 var (
@@ -61,4 +61,32 @@ func clientCall(ctx context.Context) {
 func processInternalTrace(ctx context.Context) {
 	// TODO: log ctx traceId and maybe other data
 	return
+}
+
+// 先创建“HTTP Collector”(the agent)用来收集跟踪数据并将其发送到Zipkin-UI，endpointUrl是Zipkin UI的URL
+// 其次创建了一个记录器(recorder)来记录端口上的信息，“hostUrl”是gRPC(客户端)呼叫的URL
+// 第三，用我们新建的记录器创建了一个新的跟踪器(tracer)
+// 最后，为“OpenTracing”设置了“GlobalTracer”，这样你可以在程序中的任何地方访问它。
+var (
+	endpointUrl            = "http://localhost:9411/api/v1/spans"
+	hostUrl                = "localhost:5051"
+	serviceNameCacheClient = "cache service client"
+)
+
+func newTracer() (opentracing.Tracer, zipkintracer.Collector, error) {
+	collector, err := openzipkin.NewHTTPCollector(endpointUrl)
+	if err != nil {
+		return nil, nil, err
+	}
+	recorder := openzipkin.NewRecorder(collector, true, hostUrl, serviceNameCacheClient)
+	tracer, err := openzipkin.NewTracer(
+		recorder,
+		openzipkin.ClientServerSameSpan(true))
+
+	if err != nil {
+		return nil, nil, err
+	}
+	opentracing.SetGlobalTracer(tracer)
+
+	return tracer, collector, nil
 }
