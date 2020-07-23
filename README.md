@@ -64,7 +64,7 @@ visit [http://127.0.0.1:8080/trace](http://127.0.0.1:8080/trace) in your browser
 
 ## Result shots
 
-![shot](./static/shot1.jpg)
+![shot](./static/shot1.png)
 
 ## References
 
