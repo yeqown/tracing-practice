@@ -7,28 +7,27 @@ import (
 	"time"
 
 	pb "github.com/yeqown/opentracing-practice/protogen"
+	"github.com/yeqown/opentracing-practice/x"
+	xzipkin "github.com/yeqown/opentracing-practice/x/x-zipkin"
 
 	"github.com/gin-gonic/gin"
-	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc" // TODO: rewrite this middleware own
 	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc"
 )
 
 var (
 	serverAAddr = "127.0.0.1:8081"
-	addr        = ":8080"
+	addr        = "127.0.0.1:8080"
 
 	serverAConn pb.PingClient
 )
 
 func bootstrap() {
-	// Set up opentracing tracer
-	zipkinTracer, err := bootTracer()
+	err := x.BootTracerWrapper("http-port", addr)
 	if err != nil {
 		log.Fatalf("did not boot tracer: %v", err)
 	}
-
-	_ = zipkinTracer
 
 	// Set up a connection to the server-A.
 	aConn, err := grpc.Dial(serverAAddr,
@@ -47,8 +46,10 @@ func main() {
 
 	// prepare HTTP server
 	engi := gin.New()
-	// TODO: writing a middleware to generate a Context to pass by
-	engi.Use(traceMiddleware())
+
+	// a middleware to generate a Context to pass by
+	// it also parse trace info from client request header
+	engi.Use(x.Opentracing(xzipkin.GetTraceIdFromSpanContext))
 	engi.GET("/trace", traceHdl)
 
 	// running HTTP server
@@ -60,10 +61,9 @@ func main() {
 // traceHdl is a trace handler from HTTP request
 func traceHdl(c *gin.Context) {
 	// get root Context from request
-	// rootCtx := c.Request.Context()
-	ctx, ok := c.Get(_traceContextKey)
+	// TODO: try to use c.Request.WithContext() to set context
+	ctx, ok := c.Get(x.GetTraceContextKey())
 	if !ok {
-		log.Println("could not get traceContext, it's impossible")
 		panic("impossible")
 	}
 
@@ -91,7 +91,7 @@ func clientCall(ctx context.Context) error {
 
 // internal process trace example 1
 func processInternalTrace(ctx context.Context) error {
-	ctx2, sp := getTraceAndSetSpan(ctx)
+	ctx2, sp := x.DeriveFromContext(ctx)
 	defer sp.Finish()
 
 	println("processInternalTrace called")
@@ -102,7 +102,7 @@ func processInternalTrace(ctx context.Context) error {
 }
 
 func processInternalTraceDeeper(ctx context.Context) error {
-	_, sp := getTraceAndSetSpan(ctx)
+	_, sp := x.DeriveFromContext(ctx)
 	defer sp.Finish()
 
 	println("processInternalTraceDeeper called")

@@ -5,6 +5,8 @@ import (
 	"log"
 	"net"
 
+	"github.com/yeqown/opentracing-practice/x"
+
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/opentracing/opentracing-go"
 
@@ -14,13 +16,11 @@ import (
 )
 
 var (
-	addr = ":8083"
+	addr = "127.0.0.1:8083"
 )
 
 func bootstrap() {
-	var err error
-	// Set up opentracing tracer
-	_, err = bootTracer()
+	err := x.BootTracerWrapper("service-c", addr)
 	if err != nil {
 		log.Fatalf("did not boot tracer: %v", err)
 	}

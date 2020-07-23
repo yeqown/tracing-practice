@@ -6,6 +6,7 @@ import (
 	"net"
 
 	pb "github.com/yeqown/opentracing-practice/protogen"
+	"github.com/yeqown/opentracing-practice/x"
 
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/opentracing/opentracing-go"
@@ -14,7 +15,7 @@ import (
 )
 
 var (
-	addr = ":8081"
+	addr = "127.0.0.1:8081"
 
 	serverBAddr = "127.0.0.1:8082"
 	serverCAddr = "127.0.0.1:8083"
@@ -23,9 +24,7 @@ var (
 )
 
 func bootstrap() {
-	var err error
-	// Set up opentracing tracer
-	zipkinTracer, err = bootTracer()
+	err := x.BootTracerWrapper("service-a", addr)
 	if err != nil {
 		log.Fatalf("did not boot tracer: %v", err)
 	}
@@ -59,7 +58,6 @@ func newPingA() *pingA {
 	// Set up a connection to the server.
 	bConn, err := grpc.Dial(serverBAddr,
 		grpc.WithInsecure(),
-		// grpc.WithStatsHandler(zipkingrpc.NewClientHandler(zipkinTracer)),
 		grpc.WithUnaryInterceptor(otgrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer(), otgrpc.LogPayloads())),
 	)
 	if err != nil {
@@ -68,7 +66,6 @@ func newPingA() *pingA {
 
 	cConn, err := grpc.Dial(serverCAddr,
 		grpc.WithInsecure(),
-		// grpc.WithStatsHandler(zipkingrpc.NewClientHandler(zipkinTracer)),
 		grpc.WithUnaryInterceptor(otgrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer(), otgrpc.LogPayloads())),
 	)
 	if err != nil {
@@ -82,7 +79,7 @@ func newPingA() *pingA {
 }
 
 func (p pingA) Ping(ctx context.Context, req *pb.PingReq) (*pb.PingResponse, error) {
-	// TODO: call server-B and server-C
+	// call server-B and server-C
 	_, err := p.serverBConn.Ping(ctx, req)
 	if err != nil {
 		return nil, err
