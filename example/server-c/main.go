@@ -5,6 +5,9 @@ import (
 	"log"
 	"net"
 
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	"github.com/opentracing/opentracing-go"
+
 	pb "github.com/yeqown/opentracing-practice/protogen"
 
 	"google.golang.org/grpc"
@@ -14,13 +17,26 @@ var (
 	addr = ":8083"
 )
 
+func bootstrap() {
+	var err error
+	// Set up opentracing tracer
+	_, err = bootTracer()
+	if err != nil {
+		log.Fatalf("did not boot tracer: %v", err)
+	}
+}
+
 func main() {
+	bootstrap()
+
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer(), otgrpc.LogPayloads())),
+	)
 	pb.RegisterPingServer(s, &pingC{})
 
 	log.Println("running on: ", addr)

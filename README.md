@@ -4,16 +4,20 @@ opentracing practice in golang micro server (gRPC + HTTP)
 
 ## Practice Project Arch
 ```sh
-                     |---> process internal trace1
+                                +-- process internal trace2
+                                |
+                     +---> process internal trace1
                      |
-                     |                 |---> server-b trace(gRPC)
+                     |                 +---> server-b trace(gRPC)
 entry(HTTP) ---> server-a trace--gRPC--|
-                                       |---> server-c trace(gRPC)
+                                       +---> server-c trace(gRPC)
                                                    |
-                                                   |----> process internal trace2
+                                                   +----> process internal trace3 (todo)
 ```
 
 ## Result Shots
+
+![shot](./static/shot1.jpg)
 
 ## References
 

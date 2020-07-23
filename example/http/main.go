@@ -4,10 +4,12 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"time"
 
 	pb "github.com/yeqown/opentracing-practice/protogen"
 
 	"github.com/gin-gonic/gin"
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc"
 )
@@ -19,74 +21,91 @@ var (
 	serverAConn pb.PingClient
 )
 
-func init() {
-	// Set up a connection to the server.
-	aConn, err := grpc.Dial(serverAAddr, grpc.WithInsecure())
+func bootstrap() {
+	// Set up opentracing tracer
+	zipkinTracer, err := bootTracer()
+	if err != nil {
+		log.Fatalf("did not boot tracer: %v", err)
+	}
+
+	_ = zipkinTracer
+
+	// Set up a connection to the server-A.
+	aConn, err := grpc.Dial(serverAAddr,
+		grpc.WithInsecure(),
+		grpc.WithUnaryInterceptor(otgrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer(), otgrpc.LogPayloads())),
+	)
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
-
 	serverAConn = pb.NewPingClient(aConn)
 }
 
 func main() {
+	// prepare necessary data
+	bootstrap()
+
+	// prepare HTTP server
 	engi := gin.New()
 	// TODO: writing a middleware to generate a Context to pass by
-
+	engi.Use(traceMiddleware())
 	engi.GET("/trace", traceHdl)
 
+	// running HTTP server
 	if err := engi.Run(addr); err != nil {
 		log.Fatal(err)
 	}
 }
 
+// traceHdl is a trace handler from HTTP request
 func traceHdl(c *gin.Context) {
-	// TODO: generate root Context and tracer
-	rootCtx := context.Background()
+	// get root Context from request
+	// rootCtx := c.Request.Context()
+	ctx, ok := c.Get(_traceContextKey)
+	if !ok {
+		log.Println("could not get traceContext, it's impossible")
+		panic("impossible")
+	}
 
-	clientCall(rootCtx)
+	// process request call, remote and local process
+	if err := clientCall(ctx.(context.Context)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
 
-	c.JSON(http.StatusOK, gin.H{"traceId": "todo-trace-id"})
+	// response to client
+	c.JSON(http.StatusOK, gin.H{"message": "traceHdl done"})
 }
 
-func clientCall(ctx context.Context) {
+func clientCall(ctx context.Context) error {
 	// first call remote servers
-	_, _ = serverAConn.Ping(ctx, &pb.PingReq{})
+	_, err := serverAConn.Ping(ctx, &pb.PingReq{})
+
+	if err != nil {
+		return err
+	}
 
 	// then call internal process
-	processInternalTrace(ctx)
+	return processInternalTrace(ctx)
 }
 
-// 应用内部的追踪
-func processInternalTrace(ctx context.Context) {
-	// TODO: log ctx traceId and maybe other data
-	return
+// internal process trace example 1
+func processInternalTrace(ctx context.Context) error {
+	ctx2, sp := getTraceAndSetSpan(ctx)
+	defer sp.Finish()
+
+	println("processInternalTrace called")
+	// do some ops
+	time.Sleep(10 * time.Millisecond)
+
+	return processInternalTraceDeeper(ctx2)
 }
 
-// 先创建“HTTP Collector”(the agent)用来收集跟踪数据并将其发送到Zipkin-UI，endpointUrl是Zipkin UI的URL
-// 其次创建了一个记录器(recorder)来记录端口上的信息，“hostUrl”是gRPC(客户端)呼叫的URL
-// 第三，用我们新建的记录器创建了一个新的跟踪器(tracer)
-// 最后，为“OpenTracing”设置了“GlobalTracer”，这样你可以在程序中的任何地方访问它。
-var (
-	endpointUrl            = "http://localhost:9411/api/v1/spans"
-	hostUrl                = "localhost:5051"
-	serviceNameCacheClient = "cache service client"
-)
+func processInternalTraceDeeper(ctx context.Context) error {
+	_, sp := getTraceAndSetSpan(ctx)
+	defer sp.Finish()
 
-func newTracer() (opentracing.Tracer, zipkintracer.Collector, error) {
-	collector, err := openzipkin.NewHTTPCollector(endpointUrl)
-	if err != nil {
-		return nil, nil, err
-	}
-	recorder := openzipkin.NewRecorder(collector, true, hostUrl, serviceNameCacheClient)
-	tracer, err := openzipkin.NewTracer(
-		recorder,
-		openzipkin.ClientServerSameSpan(true))
-
-	if err != nil {
-		return nil, nil, err
-	}
-	opentracing.SetGlobalTracer(tracer)
-
-	return tracer, collector, nil
+	println("processInternalTraceDeeper called")
+	time.Sleep(5 * time.Millisecond)
+	return nil
 }
