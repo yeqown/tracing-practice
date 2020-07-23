@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"time"
 
 	"github.com/yeqown/opentracing-practice/x"
 
@@ -48,6 +49,20 @@ func main() {
 type pingC struct{}
 
 func (p pingC) Ping(ctx context.Context, req *pb.PingReq) (*pb.PingResponse, error) {
+	if err := processInternalTrace3(ctx); err != nil {
+		return nil, err
+	}
+
 	resp := new(pb.PingResponse)
 	return resp, nil
+}
+
+func processInternalTrace3(ctx context.Context) error {
+	_, sp := x.DeriveFromContext(ctx)
+	defer sp.Finish()
+
+	// do some operation
+	time.Sleep(3 * time.Millisecond)
+
+	return nil
 }

@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/opentracing/opentracing-go"
-	// _ "github.com/openzipkin/zipkin-go/middleware/grpc"
 )
 
 var (
@@ -24,7 +23,7 @@ func bootstrap() {
 	}
 }
 
-func main2() {
+func main() {
 	bootstrap()
 
 	tracer := opentracing.GlobalTracer()

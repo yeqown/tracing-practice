@@ -3,9 +3,11 @@ package x
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/opentracing/opentracing-go"
+	opentracinglog "github.com/opentracing/opentracing-go/log"
 )
 
 const (
@@ -47,6 +49,8 @@ func Opentracing(getTraceIdFromSpanContext getTraceID) gin.HandlerFunc {
 		}
 		defer sp.Finish()
 
+		start := time.Now()
+		sp.LogFields(opentracinglog.Int64("start", start.Unix()))
 		// 记录annotations
 		//sp.LogFields(
 		//	opentracinglog.Object("call service a", ""),
@@ -67,5 +71,9 @@ func Opentracing(getTraceIdFromSpanContext getTraceID) gin.HandlerFunc {
 
 		// continue process request
 		c.Next()
+
+		end := time.Now()
+		sp.SetTag("latency (ms)", end.Sub(start).Milliseconds())
+		sp.LogFields(opentracinglog.Int64("finish", end.Unix()))
 	}
 }

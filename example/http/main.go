@@ -86,26 +86,26 @@ func clientCall(ctx context.Context) error {
 	}
 
 	// then call internal process
-	return processInternalTrace(ctx)
+	return processInternalTrace1(ctx)
 }
 
 // internal process trace example 1
-func processInternalTrace(ctx context.Context) error {
+func processInternalTrace1(ctx context.Context) error {
 	ctx2, sp := x.DeriveFromContext(ctx)
 	defer sp.Finish()
 
-	println("processInternalTrace called")
+	println("processInternalTrace1 called")
 	// do some ops
 	time.Sleep(10 * time.Millisecond)
 
-	return processInternalTraceDeeper(ctx2)
+	return processInternalTrace2(ctx2)
 }
 
-func processInternalTraceDeeper(ctx context.Context) error {
+func processInternalTrace2(ctx context.Context) error {
 	_, sp := x.DeriveFromContext(ctx)
 	defer sp.Finish()
 
-	println("processInternalTraceDeeper called")
+	println("processInternalTrace2 called")
 	time.Sleep(5 * time.Millisecond)
 	return nil
 }
