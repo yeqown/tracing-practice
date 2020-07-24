@@ -6,13 +6,11 @@ import (
 	"net"
 	"time"
 
-	"github.com/yeqown/opentracing-practice/x"
-
-	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	"github.com/opentracing/opentracing-go"
-
 	pb "github.com/yeqown/opentracing-practice/protogen"
+	"github.com/yeqown/opentracing-practice/x"
+	opentracingrpc "github.com/yeqown/opentracing-practice/x/grpc-interceptor"
 
+	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc"
 )
 
@@ -36,7 +34,7 @@ func main() {
 	}
 
 	s := grpc.NewServer(
-		grpc.UnaryInterceptor(otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer(), otgrpc.LogPayloads())),
+		grpc.UnaryInterceptor(opentracingrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer(), opentracingrpc.LogPayloads())),
 	)
 	pb.RegisterPingServer(s, &pingC{})
 
@@ -58,7 +56,7 @@ func (p pingC) Ping(ctx context.Context, req *pb.PingReq) (*pb.PingResponse, err
 }
 
 func processInternalTrace3(ctx context.Context) error {
-	_, sp := x.DeriveFromContext(ctx)
+	_, sp := x.StartSpanFromContext(ctx)
 	defer sp.Finish()
 
 	// do some operation

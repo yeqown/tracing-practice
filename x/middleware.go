@@ -37,6 +37,8 @@ func Opentracing(getTraceIdFromSpanContext getTraceID) gin.HandlerFunc {
 		carrier := opentracing.HTTPHeadersCarrier(c.Request.Header)
 		clientSpCtx, err := tracer.Extract(opentracing.HTTPHeaders, carrier)
 
+		// TODO: more span info
+		// FIXME: err always be nil, why ?
 		if err == nil && clientSpCtx != nil {
 			log.Printf("traceMiddleware called 1: clientTraceId=%s\n", getTraceIdFromSpanContext(clientSpCtx))
 			sp = tracer.StartSpan(c.Request.RequestURI,

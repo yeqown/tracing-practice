@@ -7,8 +7,8 @@ import (
 
 	pb "github.com/yeqown/opentracing-practice/protogen"
 	"github.com/yeqown/opentracing-practice/x"
+	opentracingrpc "github.com/yeqown/opentracing-practice/x/grpc-interceptor"
 
-	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/opentracing/opentracing-go"
 	"github.com/openzipkin/zipkin-go"
 	"google.golang.org/grpc"
@@ -39,7 +39,7 @@ func main() {
 	}
 
 	s := grpc.NewServer(
-		grpc.UnaryInterceptor(otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer(), otgrpc.LogPayloads())),
+		grpc.UnaryInterceptor(opentracingrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer(), opentracingrpc.LogPayloads())),
 	)
 	pb.RegisterPingServer(s, newPingA())
 
@@ -58,7 +58,7 @@ func newPingA() *pingA {
 	// Set up a connection to the server.
 	bConn, err := grpc.Dial(serverBAddr,
 		grpc.WithInsecure(),
-		grpc.WithUnaryInterceptor(otgrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer(), otgrpc.LogPayloads())),
+		grpc.WithUnaryInterceptor(opentracingrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer(), opentracingrpc.LogPayloads())),
 	)
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -66,7 +66,7 @@ func newPingA() *pingA {
 
 	cConn, err := grpc.Dial(serverCAddr,
 		grpc.WithInsecure(),
-		grpc.WithUnaryInterceptor(otgrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer(), otgrpc.LogPayloads())),
+		grpc.WithUnaryInterceptor(opentracingrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer(), opentracingrpc.LogPayloads())),
 	)
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)

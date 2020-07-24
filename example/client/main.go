@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/opentracing/opentracing-go/ext"
+
 	"github.com/yeqown/opentracing-practice/x"
 
 	"github.com/go-resty/resty/v2"
@@ -26,25 +28,26 @@ func bootstrap() {
 func main() {
 	bootstrap()
 
-	tracer := opentracing.GlobalTracer()
-	if tracer == nil {
-		panic("tracer not set")
-	}
-
 	// generate span
-	_, sp := x.DeriveFromContext(context.Background())
+	_, sp := x.StartSpanFromContext(context.Background())
 	defer sp.Finish()
+
+	url := serverAddr + "/trace"
+
+	ext.SpanKindRPCClient.Set(sp)
+	ext.HTTPUrl.Set(sp, url)
+	ext.HTTPMethod.Set(sp, "GET")
 
 	// HTTP Client
 	r := resty.New().R()
 	carrier := opentracing.HTTPHeadersCarrier(r.Header)
-	err := tracer.Inject(sp.Context(), opentracing.HTTPHeaders, carrier)
+	err := opentracing.GlobalTracer().Inject(sp.Context(), opentracing.HTTPHeaders, carrier)
 	if err != nil {
 		panic(err)
 	}
 
 	// do request
-	resp, err := r.Get(serverAddr + "/trace")
+	resp, err := r.Get(url)
 	if err != nil {
 		log.Fatal(err)
 	}
