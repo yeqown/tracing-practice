@@ -1,6 +1,10 @@
+echo:
+	echo "opentracing-practice"
 
-protogen:
-	protoc -I ./protos/  --go_out=plugins=grpc:./protogen  ./protos/ping.proto
+gen:
+	protoc -I ./protos/  --go_out=plugins=grpc:./protogen  ./protos/ping_a.proto
+	protoc -I ./protos/  --go_out=plugins=grpc:./protogen  ./protos/ping_b.proto
+	protoc -I ./protos/  --go_out=plugins=grpc:./protogen  ./protos/ping_c.proto
 
 run:
 	go run ./example/server-c &

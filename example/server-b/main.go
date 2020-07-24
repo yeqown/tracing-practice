@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"time"
 
 	pb "github.com/yeqown/opentracing-practice/protogen"
 	"github.com/yeqown/opentracing-practice/x"
@@ -35,7 +36,7 @@ func main() {
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(opentracingrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer(), opentracingrpc.LogPayloads())),
 	)
-	pb.RegisterPingServer(s, &pingB{})
+	pb.RegisterPingBServer(s, &pingB{})
 
 	log.Println("running on: ", addr)
 	if err := s.Serve(lis); err != nil {
@@ -45,7 +46,9 @@ func main() {
 
 type pingB struct{}
 
-func (p pingB) Ping(ctx context.Context, req *pb.PingReq) (*pb.PingResponse, error) {
-	resp := new(pb.PingResponse)
-	return resp, nil
+func (p pingB) PingB(ctx context.Context, req *pb.PingBReq) (*pb.PingBResponse, error) {
+	x.LogWithContext(ctx, "PingB calling")
+	return &pb.PingBResponse{
+		Now: time.Now().Unix(),
+	}, nil
 }

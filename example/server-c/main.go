@@ -36,7 +36,7 @@ func main() {
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(opentracingrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer(), opentracingrpc.LogPayloads())),
 	)
-	pb.RegisterPingServer(s, &pingC{})
+	pb.RegisterPingCServer(s, &pingC{})
 
 	log.Println("running on: ", addr)
 	if err := s.Serve(lis); err != nil {
@@ -46,13 +46,15 @@ func main() {
 
 type pingC struct{}
 
-func (p pingC) Ping(ctx context.Context, req *pb.PingReq) (*pb.PingResponse, error) {
+func (p pingC) PingC(ctx context.Context, req *pb.PingCReq) (*pb.PingCResponse, error) {
+	x.LogWithContext(ctx, "PingC calling")
 	if err := processInternalTrace3(ctx); err != nil {
 		return nil, err
 	}
 
-	resp := new(pb.PingResponse)
-	return resp, nil
+	return &pb.PingCResponse{
+		Now: time.Now().Unix(),
+	}, nil
 }
 
 func processInternalTrace3(ctx context.Context) error {

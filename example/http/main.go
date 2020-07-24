@@ -9,10 +9,6 @@ import (
 	pb "github.com/yeqown/opentracing-practice/protogen"
 	"github.com/yeqown/opentracing-practice/x"
 	opentracingrpc "github.com/yeqown/opentracing-practice/x/grpc-interceptor"
-	xzipkin "github.com/yeqown/opentracing-practice/x/x-zipkin"
-
-	// xjaeger "github.com/yeqown/opentracing-practice/x/x-jaeger"
-	// xzipkin "github.com/yeqown/opentracing-practice/x/x-zipkin"
 
 	"github.com/gin-gonic/gin"
 	"github.com/opentracing/opentracing-go"
@@ -23,7 +19,7 @@ var (
 	serverAAddr = "127.0.0.1:8081"
 	addr        = "127.0.0.1:8080"
 
-	serverAConn pb.PingClient
+	serverAConn pb.PingAClient
 )
 
 func bootstrap() {
@@ -40,7 +36,7 @@ func bootstrap() {
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
-	serverAConn = pb.NewPingClient(aConn)
+	serverAConn = pb.NewPingAClient(aConn)
 }
 
 func main() {
@@ -52,8 +48,7 @@ func main() {
 
 	// a middleware to generate a Context to pass by
 	// it also parse trace info from client request header
-	engi.Use(x.Opentracing(xzipkin.GetTraceIdFromSpanContext))
-	// engi.Use(x.Opentracing(xjaeger.GetTraceIdFromSpanContext))
+	engi.Use(x.Opentracing())
 	engi.GET("/trace", traceHdl)
 
 	// running HTTP server
@@ -83,7 +78,10 @@ func traceHdl(c *gin.Context) {
 
 func clientCall(ctx context.Context) error {
 	// first call remote servers
-	_, err := serverAConn.Ping(ctx, &pb.PingReq{})
+	_, err := serverAConn.PingA(ctx, &pb.PingAReq{
+		Now:  time.Now().Unix(),
+		From: "client",
+	})
 
 	if err != nil {
 		return err

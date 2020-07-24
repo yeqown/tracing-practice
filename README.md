@@ -132,7 +132,10 @@ func BootTracerWrapper(localServiceName string, hostPort string) error {
     }
     ```
 
-### how opentracing works [TODO]?
+### how opentracing works?
+
+* [https://opentracing.io/docs/overview/](https://opentracing.io/docs/overview/)
+* [https://sematext.com/blog/how-opentracing-works/](https://sematext.com/blog/how-opentracing-works/)
 
 ### What should I do if want to implement opentracing appoint? [TODO]
 

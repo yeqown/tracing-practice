@@ -27,18 +27,16 @@ import (
 func BootTracerWrapper(localServiceName string, hostPort string) error {
     // replace here xjaeger.BootJaegerTracer
     tracer, err := xzipkin.BootZipkinTracer(localServiceName, hostPort) 
+    //tracer, err := xjaeger.BootJaegerTracer(localServiceName, hostPort)
     // ...
 }
 
-// path/to/opentraing-practice/example/http/main.go
-func main() {
-    // ...
-    
-    // replace here into xjaeger.GetTraceIdFromSpanContext
-    engi.Use(x.Opentracing(xzipkin.GetTraceIdFromSpanContext))
-    
-    // ...
+// path/to/opentraing-practice/example/http/middleware.go
+func getTraceIdFromSpanContext(spCtx opentracing.SpanContext) string {
+	return xzipkin.GetTraceIdFromSpanContext(spCtx)
+	// return xjaeger.GetTraceIdFromSpanContext(spCtx)
 }
+
 ```
 
 3.Start servers

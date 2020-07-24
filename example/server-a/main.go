@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"time"
 
 	pb "github.com/yeqown/opentracing-practice/protogen"
 	"github.com/yeqown/opentracing-practice/x"
@@ -39,9 +40,10 @@ func main() {
 	}
 
 	s := grpc.NewServer(
-		grpc.UnaryInterceptor(opentracingrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer(), opentracingrpc.LogPayloads())),
+		grpc.UnaryInterceptor(opentracingrpc.OpenTracingServerInterceptor(
+			opentracing.GlobalTracer(), opentracingrpc.LogPayloads())),
 	)
-	pb.RegisterPingServer(s, newPingA())
+	pb.RegisterPingAServer(s, newPingA())
 
 	log.Println("running on: ", addr)
 	if err := s.Serve(lis); err != nil {
@@ -50,8 +52,8 @@ func main() {
 }
 
 type pingA struct {
-	serverBConn pb.PingClient
-	serverCConn pb.PingClient
+	serverBConn pb.PingBClient
+	serverCConn pb.PingCClient
 }
 
 func newPingA() *pingA {
@@ -73,22 +75,31 @@ func newPingA() *pingA {
 	}
 
 	return &pingA{
-		serverBConn: pb.NewPingClient(bConn),
-		serverCConn: pb.NewPingClient(cConn),
+		serverBConn: pb.NewPingBClient(bConn),
+		serverCConn: pb.NewPingCClient(cConn),
 	}
 }
 
-func (p pingA) Ping(ctx context.Context, req *pb.PingReq) (*pb.PingResponse, error) {
+func (p pingA) PingA(ctx context.Context, req *pb.PingAReq) (*pb.PingAResponse, error) {
+	x.LogWithContext(ctx, "PingA calling")
+
 	// call server-B and server-C
-	_, err := p.serverBConn.Ping(ctx, req)
+	_, err := p.serverBConn.PingB(ctx, &pb.PingBReq{
+		Now:  req.Now,
+		From: "server-a",
+	})
 	if err != nil {
 		return nil, err
 	}
-	_, err = p.serverCConn.Ping(ctx, req)
+	_, err = p.serverCConn.PingC(ctx, &pb.PingCReq{
+		Now:  req.Now,
+		From: "server-a",
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	resp := new(pb.PingResponse)
-	return resp, nil
+	return &pb.PingAResponse{
+		Now: time.Now().Unix(),
+	}, nil
 }

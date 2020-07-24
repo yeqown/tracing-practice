@@ -18,10 +18,8 @@ func GetTraceContextKey() string {
 	return _traceContextKey
 }
 
-type getTraceID func(spCtx opentracing.SpanContext) string
-
 // get trace info from header, if not then create an new one
-func Opentracing(getTraceIdFromSpanContext getTraceID) gin.HandlerFunc {
+func Opentracing() gin.HandlerFunc {
 	tracer := opentracing.GlobalTracer()
 	if tracer == nil {
 		panic("tracer not set")
@@ -29,25 +27,24 @@ func Opentracing(getTraceIdFromSpanContext getTraceID) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		var (
-			clientSpCtx opentracing.SpanContext
-			sp          opentracing.Span
-			ctx         context.Context
+			ctx context.Context
+			sp  opentracing.Span
 		)
+
 		carrier := opentracing.HTTPHeadersCarrier(c.Request.Header)
 		clientSpCtx, err := tracer.Extract(opentracing.HTTPHeaders, carrier)
-
-		// FIXME: err always be nil, why ?
-		if err == nil && clientSpCtx != nil {
-			log.Printf("Opentracing get client span: clientTraceId=%s\n", getTraceIdFromSpanContext(clientSpCtx))
-			sp = tracer.StartSpan(
-				c.Request.RequestURI,             // TODO: regenerate request operationName
-				opentracing.ChildOf(clientSpCtx), // TODO: more options
-			)
-		} else {
-			sp = tracer.StartSpan(c.Request.RequestURI)
+		if err != nil {
+			log.Printf("could not extract trace data from http header, err=%v\n", err)
 		}
+
+		// derive a span or create an root span
+		sp = tracer.StartSpan(
+			c.Request.RequestURI,
+			opentracing.ChildOf(clientSpCtx),
+		)
 		defer sp.Finish()
 
+		// record and log traceId
 		traceId := getTraceIdFromSpanContext(sp.Context())
 		c.Header("X-Trace-Id", traceId)
 		log.Println("request with traceId:", traceId)
