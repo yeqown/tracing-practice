@@ -32,5 +32,10 @@ func BootZipkinTracer(localServiceName, hostPort string) (opentracing.Tracer, er
 }
 
 func GetTraceIdFromSpanContext(spanCtx opentracing.SpanContext) string {
-	return spanCtx.(zipkinot.SpanContext).TraceID.String()
+	sc, ok := spanCtx.(zipkinot.SpanContext)
+	if ok {
+		return sc.TraceID.String()
+	}
+
+	return ""
 }

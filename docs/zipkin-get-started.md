@@ -1,6 +1,6 @@
-## Get started
+### Get started with zipkin
 
-1.Install `zipkin` and run.
+1.Install `zipkin` and run. You can then navigate to [http://localhost:9411](http://localhost:9411) to access the Jaeger UI.
 ```sh
 docker run -d -p 9411:9411 \
 --name zipkin \
@@ -46,6 +46,10 @@ visit [http://127.0.0.1:8080/trace](http://127.0.0.1:8080/trace) in your browser
 
     from `conosole log` or `client response header`
 
-## Result shots
+### Result shots
 
-![zipkin-shot1](docs/shot1.png)
+##### trace timeline
+![zipkin-shot1](./shot1.png)
+
+##### system architecture
+![shot5](./shot5.png)

@@ -8,13 +8,12 @@ import (
 )
 
 var (
-	_jaegerRecorderEndpoint = "http://localhost:9411/api/v2/spans"
+	_jaegerRecorderEndpoint = "https://localhost:14268/api/traces"
 )
 
 func BootJaegerTracer(localServiceName, hostPort string) (opentracing.Tracer, error) {
 	cfg := &config.Configuration{
 		ServiceName: localServiceName,
-
 		Reporter: &config.ReporterConfig{
 			LogSpans:          true,
 			CollectorEndpoint: _jaegerRecorderEndpoint,
