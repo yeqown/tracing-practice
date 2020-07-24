@@ -13,12 +13,17 @@ var (
 )
 
 func BootZipkinTracer(localServiceName, hostPort string) (opentracing.Tracer, error) {
-	reporter := zipkinhttp.NewReporter(_zipkinRecorderEndpoint)
+	reporter := zipkinhttp.NewReporter(
+		_zipkinRecorderEndpoint,
+		// zipkinhttp.Logger(log.New(os.Stdout, "zipkin", log.Lshortfile)),
+		// zipkinhttp.BatchInterval(100*time.Millisecond),
+	)
 	localEndpoint, err := zipkin.NewEndpoint(localServiceName, hostPort)
 	if err != nil {
 		return nil, errors.Wrap(err, "zipkin.NewEndpoint")
 	}
-	nativeTracer, err := zipkin.NewTracer(reporter,
+	nativeTracer, err := zipkin.NewTracer(
+		reporter,
 		zipkin.WithTraceID128Bit(false), // TODO: diff between 128 and 64bit
 		zipkin.WithLocalEndpoint(localEndpoint),
 		zipkin.WithSharedSpans(true),

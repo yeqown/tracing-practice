@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"time"
 
-	xjaeger "github.com/yeqown/opentracing-practice/x/x-jaeger"
-
 	pb "github.com/yeqown/opentracing-practice/protogen"
 	"github.com/yeqown/opentracing-practice/x"
 	opentracingrpc "github.com/yeqown/opentracing-practice/x/grpc-interceptor"
+	xzipkin "github.com/yeqown/opentracing-practice/x/x-zipkin"
 
+	// xjaeger "github.com/yeqown/opentracing-practice/x/x-jaeger"
 	// xzipkin "github.com/yeqown/opentracing-practice/x/x-zipkin"
 
 	"github.com/gin-gonic/gin"
@@ -52,8 +52,8 @@ func main() {
 
 	// a middleware to generate a Context to pass by
 	// it also parse trace info from client request header
-	// engi.Use(x.Opentracing(xzipkin.GetTraceIdFromSpanContext))
-	engi.Use(x.Opentracing(xjaeger.GetTraceIdFromSpanContext))
+	engi.Use(x.Opentracing(xzipkin.GetTraceIdFromSpanContext))
+	// engi.Use(x.Opentracing(xjaeger.GetTraceIdFromSpanContext))
 	engi.GET("/trace", traceHdl)
 
 	// running HTTP server

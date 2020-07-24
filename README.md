@@ -140,3 +140,4 @@ func BootTracerWrapper(localServiceName string, hostPort string) error {
 
 * https://zhuanlan.zhihu.com/p/79419529
 * https://opentracing.io/docs/getting-started/
+* https://www.jaegertracing.io/docs/1.18/getting-started/
