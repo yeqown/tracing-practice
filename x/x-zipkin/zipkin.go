@@ -21,6 +21,7 @@ func BootZipkinTracer(localServiceName, hostPort string) (opentracing.Tracer, er
 	nativeTracer, err := zipkin.NewTracer(reporter,
 		zipkin.WithTraceID128Bit(false), // TODO: diff between 128 and 64bit
 		zipkin.WithLocalEndpoint(localEndpoint),
+		zipkin.WithSharedSpans(true),
 		// TODO: more options
 	)
 	if err != nil {

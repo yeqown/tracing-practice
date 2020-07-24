@@ -5,14 +5,19 @@ import (
 	"github.com/pkg/errors"
 	"github.com/uber/jaeger-client-go"
 	"github.com/uber/jaeger-client-go/config"
+	jaegerlog "github.com/uber/jaeger-client-go/log"
 )
 
 var (
-	_jaegerRecorderEndpoint = "https://localhost:14268/api/traces"
+	_jaegerRecorderEndpoint = "http://localhost:14268/api/traces"
 )
 
 func BootJaegerTracer(localServiceName, hostPort string) (opentracing.Tracer, error) {
 	cfg := &config.Configuration{
+		Sampler: &config.SamplerConfig{
+			Type:  jaeger.SamplerTypeConst,
+			Param: 1,
+		},
 		ServiceName: localServiceName,
 		Reporter: &config.ReporterConfig{
 			LogSpans:          true,
@@ -20,7 +25,10 @@ func BootJaegerTracer(localServiceName, hostPort string) (opentracing.Tracer, er
 		},
 	}
 
-	tracer, _, err := cfg.NewTracer()
+	tracer, _, err := cfg.NewTracer(
+		config.Logger(jaegerlog.StdLogger),
+		config.ZipkinSharedRPCSpan(true),
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "BootJaegerTracer")
 	}
