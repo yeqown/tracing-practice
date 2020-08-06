@@ -89,3 +89,7 @@ visit [http://127.0.0.1:8080/trace](http://127.0.0.1:8080/trace) in your browser
 ##### system architecture
 
 ![shot3.png](./shot3.png)
+
+## jaeger k8s deploy
+
+https://github.com/jaegertracing/jaeger-kubernetes

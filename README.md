@@ -18,7 +18,7 @@ entry(HTTP) ---> server-a trace--gRPC--|
 ## Get started
 
 * [practice with zipkin](./docs/zipkin-get-started.md)
-* [practice with jaeger](./docs/jager-get-started.md)
+* [practice with jaeger](./docs/jaeger-get-started.md)
 
 ## Conclusion [WIP] 🚀
 
