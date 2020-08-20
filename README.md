@@ -20,6 +20,8 @@ entry(HTTP) ---> server-a trace--gRPC--|
 * [practice with zipkin](./docs/zipkin-get-started.md)
 * [practice with jaeger](./docs/jaeger-get-started.md)
 
+* [practice with jaeger-k8s in Production](./docs/jaeger-k8s.md)
+
 ## Conclusion [WIP] 🚀
 
 ### how to using opentracing?

@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jaeger-configuration
+  labels:
+    app: jaeger
+    app.kubernetes.io/name: jaeger
+data:
+  agent: |
+    log-level: debug
+    reporter:
+      grpc:
+        host-port: jaeger-collector.default.svc.cluster.local:14250
+  collector: |
+    log-level: debug
+    collector:
+      zipkin:
+        http-port: 9411
+    cassandra:
+      servers: cassandra.default.svc.cluster.local
+      keyspace: jaeger_v1_dc1
+  query: |
+    cassandra:
+      servers: cassandra.default.svc.cluster.local
+      keyspace: jaeger_v1_dc1
+  span-storage-type: cassandra

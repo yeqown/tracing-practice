@@ -1,6 +1,8 @@
 package xjaeger
 
 import (
+	"time"
+
 	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
 	"github.com/uber/jaeger-client-go"
@@ -9,7 +11,8 @@ import (
 )
 
 var (
-	_jaegerRecorderEndpoint = "http://localhost:14268/api/traces"
+	_jaegerAgentEndpoint = "172.16.70.1:6832"
+	//_jaegerRecorderEndpoint = "http://localhost:14268/api/traces"
 )
 
 func BootJaegerTracer(localServiceName, hostPort string) (opentracing.Tracer, error) {
@@ -20,8 +23,10 @@ func BootJaegerTracer(localServiceName, hostPort string) (opentracing.Tracer, er
 		},
 		ServiceName: localServiceName,
 		Reporter: &config.ReporterConfig{
-			LogSpans:          true,
-			CollectorEndpoint: _jaegerRecorderEndpoint,
+			LogSpans: true,
+			//CollectorEndpoint: _jaegerRecorderEndpoint,
+			LocalAgentHostPort:  _jaegerAgentEndpoint,
+			BufferFlushInterval: 5 * time.Second,
 		},
 	}
 
