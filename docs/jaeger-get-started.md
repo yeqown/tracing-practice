@@ -90,6 +90,7 @@ visit [http://127.0.0.1:8080/trace](http://127.0.0.1:8080/trace) in your browser
 
 ![shot3.png](./shot3.png)
 
-## jaeger k8s deploy
+## Extension 
 
-https://github.com/jaegertracing/jaeger-kubernetes
+* [jaeger k8s deploy](https://github.com/jaegertracing/jaeger-kubernetes)
+* [jaeger metrics with grafana](./jaeger-grafana.md)
