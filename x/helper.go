@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"runtime"
+	"strings"
 
-	xzipkin "github.com/yeqown/opentracing-practice/x/x-zipkin"
+	opentracinglog "github.com/opentracing/opentracing-go/log"
 
 	"github.com/opentracing/opentracing-go"
+	xjaeger "github.com/yeqown/opentracing-practice/x/x-jaeger"
 )
 
 func WhoCalling() string {
@@ -33,6 +36,16 @@ func LogWithContext(ctx context.Context, format string, args ...interface{}) {
 }
 
 func getTraceIdFromSpanContext(spCtx opentracing.SpanContext) string {
-	return xzipkin.GetTraceIdFromSpanContext(spCtx)
-	// return xjaeger.GetTraceIdFromSpanContext(spCtx)
+	//return xzipkin.GetTraceIdFromSpanContext(spCtx)
+	return xjaeger.GetTraceIdFromSpanContext(spCtx)
+}
+
+func headerToFields(header http.Header) []opentracinglog.Field {
+	fields := make([]opentracinglog.Field, 0, len(http.Header{}))
+
+	for k, v := range header {
+		fields = append(fields, opentracinglog.String(k, strings.Join(v, ";")))
+	}
+
+	return fields
 }

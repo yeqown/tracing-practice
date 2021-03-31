@@ -61,13 +61,10 @@ func main() {
 func traceHdl(c *gin.Context) {
 	// get root Context from request
 	// TODO: try to use c.Request.WithContext() to set context
-	ctx, ok := c.Get(x.GetTraceContextKey())
-	if !ok {
-		panic("impossible")
-	}
+	ctx := x.ExtractTraceContext(c)
 
 	// process request call, remote and local process
-	if err := clientCall(ctx.(context.Context)); err != nil {
+	if err := clientCall(ctx); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
