@@ -20,7 +20,7 @@ docker run -d --name jaeger \
 
 ```go
 import (
-    xjaeger "github.com/yeqown/opentracing-practice/x/x-jaeger"
+    xjaeger "github.com/yeqown/tracing-practice/x/opentracing/x-jaeger"
 )
 
 // path/to/opentraing-practice/x/boot.go
@@ -31,7 +31,7 @@ func BootTracerWrapper(localServiceName string, hostPort string) error {
     // ...
 }
 
-// path/to/opentraing-practice/example/http/middleware.go
+// path/to/opentraing-practice/examples/http/middleware.go
 func getTraceIdFromSpanContext(spCtx opentracing.SpanContext) string {
 	return xzipkin.GetTraceIdFromSpanContext(spCtx)
 	// return xjaeger.GetTraceIdFromSpanContext(spCtx)
@@ -44,17 +44,17 @@ func getTraceIdFromSpanContext(spCtx opentracing.SpanContext) string {
 ```sh
 cd path/to/opentracing-practice
 
-# server-c
-go run example/server-c/main.go
+# c
+go run examples/c/main.go
 
-# server-b
-go run example/server-b/main.go
+# b
+go run examples/b/main.go
 
-# server-a
-go run example/server-b/main.go
+# a
+go run examples/b/main.go
 
 # http-server
-go run example/http/main.go
+go run examples/http/main.go
 ```
 
 OR 

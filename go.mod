@@ -1,20 +1,16 @@
-module github.com/yeqown/opentracing-practice
+module github.com/yeqown/tracing-practice
 
-go 1.14
+go 1.17
 
 require (
-	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
-	github.com/gin-gonic/gin v1.6.3
-	github.com/go-resty/resty/v2 v2.3.0
-	github.com/golang/protobuf v1.4.2
-	github.com/opentracing/opentracing-go v1.2.0
-	github.com/openzipkin-contrib/zipkin-go-opentracing v0.4.5
-	github.com/openzipkin/zipkin-go v0.2.2
-	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.4.0
-	github.com/uber/jaeger-client-go v2.25.0+incompatible
-	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
-	go.uber.org/atomic v1.6.0 // indirect
-	golang.org/x/net v0.0.0-20200513185701-a91f0712d120
-	google.golang.org/grpc v1.30.0
+	google.golang.org/grpc v1.41.0
+	google.golang.org/protobuf v1.25.0
+)
+
+require (
+	github.com/golang/protobuf v1.4.3 // indirect
+	golang.org/x/net v0.0.0-20200822124328-c89045814202 // indirect
+	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd // indirect
+	golang.org/x/text v0.3.2 // indirect
+	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 )

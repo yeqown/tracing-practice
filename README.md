@@ -1,6 +1,6 @@
-# opentracing-practice
-opentracing practice in golang micro server (gRPC + HTTP). I'm not using any standalone tools to trace, 
-but part of them(zipkin/jaeger) implementation of opentracing appoint. 
+# tracing-practice
+tracing practice in golang micro server (gRPC + HTTP). I'm not using any standalone tools to trace, 
+but part of them(zipkin/jaeger) implementation of opentracing appoint, and another integration solution `sentry`.
 
 ## Practice trace chain
 ```sh
@@ -8,9 +8,9 @@ but part of them(zipkin/jaeger) implementation of opentracing appoint.
                                 |
                      +---> process internal trace1
                      |
-                     |                 +---> server-b trace(gRPC)
-entry(HTTP) ---> server-a trace--gRPC--|
-                                       +---> server-c trace(gRPC)
+                     |                 +---> b trace(gRPC)
+entry(HTTP) ---> a trace--gRPC--|
+                                       +---> c trace(gRPC)
                                                    |
                                                    +----> process internal trace3
 ```
@@ -19,6 +19,7 @@ entry(HTTP) ---> server-a trace--gRPC--|
 
 * [practice with zipkin](./docs/zipkin-get-started.md)
 * [practice with jaeger](./docs/jaeger-get-started.md)
+* [practice with sentry](./docs/jaeger-get-started.md)
 
 * [practice with jaeger-k8s in Production](./docs/jaeger-k8s.md)
 
@@ -34,7 +35,7 @@ package x
 import (
     "github.com/opentracing/opentracing-go"
     "github.com/pkg/errors"
-    xzipkin "github.com/yeqown/opentracing-practice/x/x-zipkin"
+    xzipkin "github.com/yeqown/tracing-practice/x/x-zipkin"
 )
 
 func BootTracerWrapper(localServiceName string, hostPort string) error {

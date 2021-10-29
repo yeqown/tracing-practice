@@ -8,7 +8,7 @@
 * All yaml config files
 
 ### Config files
-all config file could be found in [jaeger-k8s](../jaeger-k8s)
+all config file could be found in [jaeger-k8s](../.deploy/jaeger-k8s)
 
 ```shell script
 .

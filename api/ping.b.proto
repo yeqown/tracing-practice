@@ -1,0 +1,17 @@
+syntax = "proto3";
+package pb;
+
+option go_package = "github.com/yeqown/tracing-practice/api;api";
+
+service PingB {
+    rpc PingB(PingBReq) returns(PingBResponse) {};
+}
+
+message PingBReq{
+    int64 now = 1;
+    string from = 2;
+};
+
+message PingBResponse{
+    int64 now = 1;
+};

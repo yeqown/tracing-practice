@@ -12,17 +12,17 @@ docker.io/openzipkin/zipkin
 ```sh
 cd path/to/opentracing-practice
 
-# server-c
-go run example/server-c/main.go
+# c
+go run examples/c/main.go
 
-# server-b
-go run example/server-b/main.go
+# b
+go run examples/b/main.go
 
-# server-a
-go run example/server-b/main.go
+# a
+go run examples/b/main.go
 
 # http-server
-go run example/http/main.go
+go run examples/http/main.go
 ```
 
 OR 
