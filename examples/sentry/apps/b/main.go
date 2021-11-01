@@ -6,27 +6,29 @@ import (
 	"net"
 	"time"
 
-	"github.com/opentracing/opentracing-go"
+	"github.com/getsentry/sentry-go"
 	"google.golang.org/grpc"
 
-	x2 "examples/opentracing/x"
-
 	pb "github.com/yeqown/tracing-practice/api"
+	"github.com/yeqown/tracing-practice/examples/sentry/x"
 )
 
 var (
 	addr = "127.0.0.1:8082"
 )
 
-func bootstrap() {
-	err := x2.BootTracerWrapper("service-b", addr)
-	if err != nil {
-		log.Fatalf("did not boot tracer: %v", err)
-	}
-}
-
 func main() {
-	bootstrap()
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn:         "https://1c2d1ae347944688ae7593a33e40c0f2@sentry.example.com/33",
+		ServerName:  "b",
+		Environment: "dev",
+		Release:     "v1.0.0",
+		SampleRate:  1.0,
+	})
+	defer sentry.Flush(2 * time.Second)
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
 
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -34,7 +36,7 @@ func main() {
 	}
 
 	s := grpc.NewServer(
-		grpc.UnaryInterceptor(x2.OpenTracingServerInterceptor(opentracing.GlobalTracer(), x2.LogPayloads())),
+		grpc.UnaryInterceptor(x.UnaryServerInterceptor()),
 	)
 	pb.RegisterPingBServer(s, &pingB{})
 
@@ -49,7 +51,7 @@ type pingB struct {
 }
 
 func (p pingB) PingB(ctx context.Context, req *pb.PingBReq) (*pb.PingBResponse, error) {
-	x2.LogWithContext(ctx, "PingB calling")
+	x.LogWithContext(ctx, "PingB calling")
 	return &pb.PingBResponse{
 		Now: time.Now().Unix(),
 	}, nil

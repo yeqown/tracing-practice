@@ -2,31 +2,37 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
+	"math/rand"
 	"net"
 	"time"
 
-	"github.com/opentracing/opentracing-go"
+	"github.com/getsentry/sentry-go"
 	"google.golang.org/grpc"
 
-	x2 "examples/opentracing/x"
-
 	pb "github.com/yeqown/tracing-practice/api"
+	"github.com/yeqown/tracing-practice/examples/sentry/x"
 )
 
 var (
 	addr = "127.0.0.1:8083"
 )
 
-func bootstrap() {
-	err := x2.BootTracerWrapper("service-c", addr)
-	if err != nil {
-		log.Fatalf("did not boot tracer: %v", err)
-	}
-}
-
 func main() {
-	bootstrap()
+	rand.Seed(time.Now().UnixNano())
+
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn:         "https://1c2d1ae347944688ae7593a33e40c0f2@sentry.example.com/33",
+		ServerName:  "c",
+		Environment: "dev",
+		Release:     "v1.0.0",
+		SampleRate:  1.0,
+	})
+	defer sentry.Flush(2 * time.Second)
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
 
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -34,7 +40,7 @@ func main() {
 	}
 
 	s := grpc.NewServer(
-		grpc.UnaryInterceptor(x2.OpenTracingServerInterceptor(opentracing.GlobalTracer(), x2.LogPayloads())),
+		grpc.UnaryInterceptor(x.UnaryServerInterceptor()),
 	)
 	pb.RegisterPingCServer(s, &pingC{})
 
@@ -49,7 +55,13 @@ type pingC struct {
 }
 
 func (p pingC) PingC(ctx context.Context, req *pb.PingCReq) (*pb.PingCResponse, error) {
-	x2.LogWithContext(ctx, "PingC calling")
+	x.LogWithContext(ctx, "PingC calling")
+
+	if r := rand.Intn(100); r <= 50 {
+		println("paniced")
+		panic(errors.New("random panic"))
+	}
+
 	if err := processInternalTrace3(ctx); err != nil {
 		return nil, err
 	}
@@ -60,7 +72,7 @@ func (p pingC) PingC(ctx context.Context, req *pb.PingCReq) (*pb.PingCResponse, 
 }
 
 func processInternalTrace3(ctx context.Context) error {
-	_, sp := x2.StartSpanFromContext(ctx)
+	sp := sentry.StartSpan(ctx, "processInternalTrace3")
 	defer sp.Finish()
 
 	// do some operation

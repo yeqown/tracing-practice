@@ -6,13 +6,11 @@ import (
 	"net"
 	"time"
 
-	"github.com/opentracing/opentracing-go"
-	"github.com/openzipkin/zipkin-go"
+	"github.com/getsentry/sentry-go"
 	"google.golang.org/grpc"
 
-	x2 "examples/opentracing/x"
-
 	pb "github.com/yeqown/tracing-practice/api"
+	"github.com/yeqown/tracing-practice/examples/sentry/x"
 )
 
 var (
@@ -20,19 +18,18 @@ var (
 
 	serverBAddr = "127.0.0.1:8082"
 	serverCAddr = "127.0.0.1:8083"
-
-	zipkinTracer *zipkin.Tracer
 )
 
-func bootstrap() {
-	err := x2.BootTracerWrapper("service-a", addr)
-	if err != nil {
-		log.Fatalf("did not boot tracer: %v", err)
-	}
-}
-
 func main() {
-	bootstrap()
+	err := sentry.Init(sentry.ClientOptions{
+		//Dsn: "https://af1a4d56a9a349e08ff1581c0d1c8d5a@sentry.example.com/35",
+		Dsn:         "https://1c2d1ae347944688ae7593a33e40c0f2@sentry.example.com/33",
+		ServerName:  "a",
+		Environment: "dev",
+		Release:     "v1.0.0",
+		SampleRate:  1.0,
+	})
+	defer sentry.Flush(2 * time.Second)
 
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -40,8 +37,7 @@ func main() {
 	}
 
 	s := grpc.NewServer(
-		grpc.UnaryInterceptor(x2.OpenTracingServerInterceptor(
-			opentracing.GlobalTracer(), x2.LogPayloads())),
+		grpc.UnaryInterceptor(x.UnaryServerInterceptor()),
 	)
 	pb.RegisterPingAServer(s, newPingA())
 
@@ -62,8 +58,7 @@ func newPingA() *pingA {
 	// Set up a connection to the server.
 	bConn, err := grpc.Dial(serverBAddr,
 		grpc.WithInsecure(),
-		grpc.WithUnaryInterceptor(
-			x2.OpenTracingClientInterceptor(opentracing.GlobalTracer(), x2.LogPayloads())),
+		grpc.WithUnaryInterceptor(x.UnaryClientInterceptor()),
 	)
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -71,8 +66,7 @@ func newPingA() *pingA {
 
 	cConn, err := grpc.Dial(serverCAddr,
 		grpc.WithInsecure(),
-		grpc.WithUnaryInterceptor(
-			x2.OpenTracingClientInterceptor(opentracing.GlobalTracer(), x2.LogPayloads())),
+		grpc.WithUnaryInterceptor(x.UnaryClientInterceptor()),
 	)
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -85,7 +79,7 @@ func newPingA() *pingA {
 }
 
 func (p pingA) PingA(ctx context.Context, req *pb.PingAReq) (*pb.PingAResponse, error) {
-	x2.LogWithContext(ctx, "PingA calling")
+	x.LogWithContext(ctx, "PingA calling")
 
 	// call server-B and server-C
 	_, err := p.serverBConn.PingB(ctx, &pb.PingBReq{
